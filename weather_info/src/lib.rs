@@ -4,6 +4,7 @@ use std::error::Error;
 
 extern crate open_meteo_rs;
 
+#[derive(Debug)]
 pub struct GPScoordinates {
     pub longitude: f64,
     pub latitude: f64,
@@ -15,7 +16,7 @@ pub struct CurrentTemperature {
     pub value: f32,
 }
 
-async fn get_forecast_result(gps_coordinates: GPScoordinates) -> Result<ForecastResult, Box<dyn Error>> {
+async fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<ForecastResult, Box<dyn Error>> {
     let client = open_meteo_rs::Client::new();
     let mut opts = open_meteo_rs::forecast::Options::default();
 
@@ -28,16 +29,16 @@ async fn get_forecast_result(gps_coordinates: GPScoordinates) -> Result<Forecast
 
 pub async fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<CurrentTemperature, Box<dyn Error>> {
     let forecast_current = 
-        get_forecast_result(gps_coordinates)
+        get_forecast_result(&gps_coordinates)
             .await?
             .current
-            .with_context(|| "forecast current failed")?;
+            .with_context(|| format!("forecast current failed for gps: {gps_coordinates:#?}"))?;
 
     let forecast_temp = 
         forecast_current
             .values
             .get("temperature_2m")
-            .with_context(|| "temperature failed")?
+            .with_context(|| "get temperature failed")?
         ;
 
     let temperature = CurrentTemperature {

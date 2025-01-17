@@ -1,22 +1,26 @@
-use anyhow::Context;
+use anyhow::{Context, Ok};
 use open_meteo_rs::forecast::ForecastResult;
-use std::error::Error;
+use std::{error::Error};
+use tokio::runtime::Runtime;
 
 extern crate open_meteo_rs;
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct GPScoordinates {
     pub longitude: f64,
     pub latitude: f64,
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct CurrentTemperature {
     pub unit: String,
     pub value: f32,
 }
 
-async fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<ForecastResult, Box<dyn Error>> {
+ fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<ForecastResult, Box<dyn Error>> {
+ //fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<ForecastResult, anyhow::Error> {
     let client = open_meteo_rs::Client::new();
     let mut opts = open_meteo_rs::forecast::Options::default();
 
@@ -24,13 +28,15 @@ async fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<Forecas
 
     opts.current.push("temperature_2m".into());
 
-    client.forecast(opts).await
+    Runtime::new().unwrap().block_on(client.forecast(opts))
 }
 
-pub async fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<CurrentTemperature, Box<dyn Error>> {
+//pub fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<CurrentTemperature, Box<dyn Error>> {
+pub fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<CurrentTemperature, anyhow::Error> {
     let forecast_current = 
         get_forecast_result(&gps_coordinates)
-            .await?
+        	.unwrap()
+            //.await?
             .current
             .with_context(|| format!("forecast current failed for gps: {gps_coordinates:#?}"))?;
 
@@ -55,13 +61,13 @@ pub async fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn it_works() {
+    #[test]
+    fn it_works() {
         let gps = GPScoordinates {
             latitude: 51.76,
             longitude: 19.65,
         };
-        let result =  get_current_temperature(gps).await.unwrap();
+        let result =  get_current_temperature(gps).unwrap();
         println!("[result] {:#?}", result);
         assert!(true);
     }

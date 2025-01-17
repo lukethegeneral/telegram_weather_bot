@@ -54,13 +54,14 @@ fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<CurrentWea
     )?;
 
     let temperature = CurrentWeather {
-        temp_unit: temp_unit.as_ptr(),
+        //temp_unit: temp_unit.as_ptr(),
+        temp_unit: temp_unit.into_raw(),
         temp_value: forecast_temp.value.to_string().parse::<f32>()
             .with_context(|| "parsing temperature failed")?,
     };
 
     //do not free up the string memory
-    std::mem::forget(temp_unit);
+    //std::mem::forget(temp_unit);
 
     Ok(temperature)
 }

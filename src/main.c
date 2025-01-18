@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <telebot.h>
-#include "include/rust.h"
+#include "../include/rust.h"
 
 #define SIZE_OF_ARRAY(array) (sizeof(array) / sizeof(array[0]))
 

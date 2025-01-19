@@ -12,13 +12,6 @@ int main(int argc, char *argv[])
 {
     printf("Welcome to Echobot\n");
 
-    GPScoordinates gps; 
-    gps.latitude = 51.76;
-    gps.longitude = 19.65;
-
-    CurrentWeather cw = get_current_temperature_c(gps);
-    printf("[CurrentWeather][temperature] %.2f%s\n", cw.temp_value, cw.temp_unit);
-
     FILE *fp = fopen(".token", "r");
     if (fp == NULL)
     {
@@ -83,18 +76,27 @@ int main(int argc, char *argv[])
                 if (strstr(message.text, "/weather"))
                 {
                     GPScoordinates gps; 
-                    gps.latitude = 51.76;
-                    gps.longitude = 19.65;
-                    CurrentWeather cw = get_current_temperature_c(gps);
-                    printf("[CurrentWeather][temperature] %.2f%s\n", cw.temp_value, cw.temp_unit);
+                    //gps.latitude = 51.76;
+                    //gps.longitude = 19.65;
+                    gps.latitude = 1000.0;
+                    gps.longitude = -100.0;
+                    //CurrentWeather cw = get_current_temperature_c(gps);
+                    CurrentWeather *cw = get_current_temperature_c(gps);
                     
                     char str[4096];
-                    snprintf(str, SIZE_OF_ARRAY(str), "[current temperature]: %.2f%s\n", cw.temp_value, cw.temp_unit);
+                    if(!cw->error_flg) 
+                        snprintf(str, SIZE_OF_ARRAY(str), "[current temperature]: %.2f%s\n", cw->temp_value, cw->temp_unit);
+                    else
+                        snprintf(str, SIZE_OF_ARRAY(str), "[error]: %s\n", cw->error_msg);
+
                     ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
                     if (ret != TELEBOT_ERROR_NONE)
                     {
                         printf("Failed to send message: %d \n", ret);
                     }
+                    //free string memory in rust
+                    get_current_temperature_c_free(cw);
+
                 }
                 else
                 {

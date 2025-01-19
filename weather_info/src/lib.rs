@@ -58,7 +58,7 @@ fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<*mut Curre
 
     //let temp_unit_ptr = temp_unit.as_ptr();
 
-    let temperature = CurrentWeather {
+    Ok(Box::into_raw(Box::new(CurrentWeather{
         //temp_unit: temp_unit.as_ptr(),
         //temp_unit: temp_unit_ptr,
         temp_unit: temp_unit.into_raw(),
@@ -66,12 +66,11 @@ fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<*mut Curre
             .with_context(|| "parsing temperature value failed")?,
         error_flg: false,
         error_msg: null(),
-    };
+    })))
 
     //do not free up the string memory
     //std::mem::forget(temp_unit_ptr);
 
-    Ok(Box::into_raw(Box::new(temperature)))
 }
 
 #[no_mangle]
@@ -87,7 +86,7 @@ pub extern "C" fn get_current_temperature_c (gps_coordinates: GPScoordinates) ->
                 temp_unit : null(),
                 temp_value : 0.0,
                 error_flg : true,
-                error_msg : CString::new(format!("{err}")).unwrap().into_raw(),
+                error_msg : CString::new(format!("{:#?}", err)).unwrap().into_raw(),
                 } 
             ))
         },
@@ -101,7 +100,7 @@ pub extern "C" fn get_current_temperature_c_free (ptr: *mut CurrentWeather) {
     }
     else {
         unsafe {
-            Box::from_raw(ptr);
+            let _ = Box::from_raw(ptr);
         }
     }
 }
@@ -143,7 +142,7 @@ mod tests {
         println!("[result] {:#?}", result);
         assert!(result.error_flg);
         let cstr = CStr::from_ptr(result.error_msg).to_str().unwrap();
-        println!("[error message]: {}\n", cstr);
+        println!("[error message]:\n{}\n", cstr);
         };
     }
 

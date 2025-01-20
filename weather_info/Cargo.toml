@@ -1,0 +1,13 @@
+[package]
+name = "weather_info"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+open-meteo-rs = "0.0.4"
+tokio = "1.43.0"
+futures = "0.3"
+
+[lib]
+crate-type = ["cdylib"]

@@ -6,10 +6,10 @@ typedef struct
 
 typedef struct 
 {
-    const char *temp_unit;
-    float temp_value;
 	bool error_flg;
 	const char *error_msg;
+    const char *temp_unit;
+    float temp_value;
 } CurrentWeather;
 
 extern CurrentWeather *get_current_temperature_c(GPScoordinates gps);

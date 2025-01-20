@@ -13,13 +13,19 @@ pub struct GPScoordinates {
     pub latitude: f64,
 }
 
+/*
+fn parse_coordinates (str: *const c_char) -> GPScoordinates {
+
+}
+*/
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct CurrentWeather {
-    pub temp_unit: *const c_char,
-    pub temp_value: f32,
     pub error_flg: bool,
     pub error_msg: *const c_char,
+    pub temp_unit: *const c_char,
+    pub temp_value: f32,
 }
 
  fn get_forecast_result(gps_coordinates: &GPScoordinates) -> Result<ForecastResult, Box<dyn Error>> {
@@ -61,11 +67,11 @@ fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<*mut Curre
     Ok(Box::into_raw(Box::new(CurrentWeather{
         //temp_unit: temp_unit.as_ptr(),
         //temp_unit: temp_unit_ptr,
+        error_flg: false,
+        error_msg: null(),
         temp_unit: temp_unit.into_raw(),
         temp_value: forecast_temp.value.to_string().parse::<f32>()
             .with_context(|| "parsing temperature value failed")?,
-        error_flg: false,
-        error_msg: null(),
     })))
 
     //do not free up the string memory
@@ -83,10 +89,10 @@ pub extern "C" fn get_current_temperature_c (gps_coordinates: GPScoordinates) ->
         Err(err) => {
             Box::into_raw(Box::new(
             CurrentWeather {
-                temp_unit : null(),
-                temp_value : 0.0,
                 error_flg : true,
                 error_msg : CString::new(format!("{:#?}", err)).unwrap().into_raw(),
+                temp_unit : null(),
+                temp_value : 0.0,
                 } 
             ))
         },

@@ -2,7 +2,7 @@
 	"version": 8,
 	"configurePresets": [
 		{
-			"name": "Configure preset using toolchain file",
+			"name": "dev",
 			"displayName": "Configure preset using toolchain file",
 			"description": "Sets Ninja generator, build and install directory",
 			"generator": "Ninja",

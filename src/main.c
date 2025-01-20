@@ -77,51 +77,36 @@ int main(int argc, char *argv[])
                 {
                     GPScoordinates gps = {0,0};
 
-                    //char *w_ptr = strpbrk(message.text, "0123456789");
-                    char *w_ptr = strchr(message.text, ' ');
-                    if (w_ptr != NULL) {
-                        printf("%s\n", w_ptr);
-                        char *w_end;
-                        gps.latitude = strtod(w_ptr, &w_end); 
-                        printf("latitude: %f\n", gps.latitude);
-                        gps.longitude = strtod(w_end, NULL); 
-                        printf("longitute: %f\n", gps.longitude);
+                    if (sscanf(message.text, "/weather %lf %lf", &gps.latitude, &gps.longitude) == 2) {
+                        CurrentWeather *cw = get_current_temperature_c(gps);
+                        printf("temp: %.2f%s\n", cw->temp_value, cw->temp_unit);
+                        
+                        char str[4096];
+                        if(!cw->error_flg) 
+                            snprintf(str, SIZE_OF_ARRAY(str), "Current temperature for location (%.2f,%.2f) is %.2f%s\n",
+                                gps.latitude, gps.longitude, cw->temp_value, cw->temp_unit);
+                        else
+                            snprintf(str, SIZE_OF_ARRAY(str), "[error]:\n%s\n", cw->error_msg);
+
+                        ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
+                        if (ret != TELEBOT_ERROR_NONE)
+                        {
+                            printf("Failed to send message: %d \n", ret);
+                        }
+
+                        //free string memory in rust
+                        get_current_temperature_c_free(cw);
                     }
-
-					/*
-                    char *w_ptr = strtok(message.text, " ");
-                    int num = 0;
-                    while (w_ptr != NULL) {
-                        printf("%s\n", w_ptr);
-                        char *w_end;
-                        gps.latitude = strtod(w_ptr, &w_end); 
-                        printf("latitude: %f\n", gps.latitude);
-                        gps.longitude = strtod(w_end, NULL); 
-                        printf("longitute: %f\n", gps.longitude);
-                        w_ptr = strtok(NULL, " ");
-                    };
-                    */
-
-                    //gps.latitude = 51.76;
-                    //gps.longitude = 19.65;
-                    //CurrentWeather cw = get_current_temperature_c(gps);
-                    CurrentWeather *cw = get_current_temperature_c(gps);
-                    
-                    char str[4096];
-                    if(!cw->error_flg) 
-                        snprintf(str, SIZE_OF_ARRAY(str), "[current temperature for (%.2f,%.2f)]: %.2f%s\n",
-                        	gps.latitude, gps.longitude, cw->temp_value, cw->temp_unit);
                     else
-                        snprintf(str, SIZE_OF_ARRAY(str), "[error]:\n%s\n", cw->error_msg);
-
-                    ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
-                    if (ret != TELEBOT_ERROR_NONE)
                     {
-                        printf("Failed to send message: %d \n", ret);
+                        char *str = "Wrong arguments.Please type:\n/weather latitude longitude\n";
+                        printf("%s\n", str);
+                        ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
+                        if (ret != TELEBOT_ERROR_NONE)
+                        {
+                            printf("Failed to send message: %d \n", ret);
+                        }
                     }
-
-                    //free string memory in rust
-                    get_current_temperature_c_free(cw);
                 }
                 else
                 {

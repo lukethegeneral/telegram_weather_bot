@@ -1,5 +1,4 @@
 use anyhow::Context;
-//use std::result::Result::Ok;
 use open_meteo_rs::forecast::ForecastResult;
 use std::{error::Error, ffi::CString, os::raw::c_char, ptr::null};
 use tokio::runtime::Runtime;
@@ -12,12 +11,6 @@ pub struct GPScoordinates {
     pub longitude: f64,
     pub latitude: f64,
 }
-
-/*
-fn parse_coordinates (str: *const c_char) -> GPScoordinates {
-
-}
-*/
 
 #[derive(Debug)]
 #[repr(C)]
@@ -62,26 +55,17 @@ fn get_current_temperature(gps_coordinates: GPScoordinates) -> Result<*mut Curre
             .with_context(|| "get temperature unit failed")?
     )?;
 
-    //let temp_unit_ptr = temp_unit.as_ptr();
-
     Ok(Box::into_raw(Box::new(CurrentWeather{
-        //temp_unit: temp_unit.as_ptr(),
-        //temp_unit: temp_unit_ptr,
         error_flg: false,
         error_msg: null(),
         temp_unit: temp_unit.into_raw(),
         temp_value: forecast_temp.value.to_string().parse::<f32>()
             .with_context(|| "parsing temperature value failed")?,
     })))
-
-    //do not free up the string memory
-    //std::mem::forget(temp_unit_ptr);
-
 }
 
 #[no_mangle]
 pub extern "C" fn get_current_temperature_c (gps_coordinates: GPScoordinates) -> *mut CurrentWeather {
-    //get_current_temperature(gps_coordinates).unwrap()
     match get_current_temperature(gps_coordinates) {
         Ok(res_ok) => {
             res_ok
@@ -123,12 +107,10 @@ mod tests {
             latitude: 51.76,
             longitude: 19.65,
         };
-  //      let result =  get_current_temperature(gps).unwrap();
         let res = get_current_temperature_c(gps); 
         unsafe {
         let result =  Box::from_raw(res);
         println!("[result] {:#?}", result);
-        //let cstr = unsafe {CStr::from_ptr(result.temp_unit).to_str().unwrap()};
         assert!(!result.error_flg);
         let cstr = CStr::from_ptr(result.temp_unit).to_str().unwrap();
         assert!(cstr.contains("°C"), "[temp_unit] = {}", cstr);

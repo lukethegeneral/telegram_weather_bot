@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <telebot.h>
-#include "../include/rust.h"
+#include "rust.h"
 
 #define SIZE_OF_ARRAY(array) (sizeof(array) / sizeof(array[0]))
 
@@ -68,11 +68,6 @@ int main(int argc, char *argv[])
             if (message.text)
             {
                 printf("%s: %s \n", message.from->first_name, message.text);
-                if (strstr(message.text, "/dice"))
-                {
-                    telebot_send_dice(handle, message.chat->id, false, 0, "");
-                }
-                else
                 if (strstr(message.text, "/weather"))
                 {
                     GPScoordinates gps = {0,0};
@@ -99,7 +94,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        char *str = "Wrong arguments.Please type:\n/weather latitude longitude\n";
+                        char *str = "Wrong arguments. Correct format:\n/weather latitude longitude\n";
                         printf("%s\n", str);
                         ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
                         if (ret != TELEBOT_ERROR_NONE)
@@ -107,19 +102,6 @@ int main(int argc, char *argv[])
                             printf("Failed to send message: %d \n", ret);
                         }
                     }
-                }
-                else
-                {
-                    char str[4096];
-                    if (strstr(message.text, "/start"))
-                    {
-                        snprintf(str, SIZE_OF_ARRAY(str), "Hello %s", message.from->first_name);
-                    }
-                    else
-                    {
-                        snprintf(str, SIZE_OF_ARRAY(str), "<i>%s</i>", message.text);
-                    }
-                    ret = telebot_send_message(handle, message.chat->id, str, "HTML", false, false, updates[index].message.message_id, "");
                 }
                 if (ret != TELEBOT_ERROR_NONE)
                 {

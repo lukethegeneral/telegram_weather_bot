@@ -12,7 +12,12 @@ int main(int argc, char *argv[])
 {
     printf("Welcome to Echobot\n");
 
-    FILE *fp = fopen(".token", "r");
+    FILE *fp; 
+    if (argc > 1)
+        fp = fopen(argv[1], "r");
+    else
+        fp = fopen(".token", "r");
+
     if (fp == NULL)
     {
         printf("Failed to open .token file\n");
